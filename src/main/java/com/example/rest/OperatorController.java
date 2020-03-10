@@ -2,6 +2,7 @@ package com.example.rest;
 
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 import org.springframework.hateoas.CollectionModel;
@@ -23,16 +24,25 @@ import com.example.persistence.repository.OperatorRepository;
 public class OperatorController {
 
   private final OperatorRepository repository;
+  
+  private final OperatorModelAssembler assembler;
 
-  OperatorController(OperatorRepository repository) {
-    this.repository = repository;
+  OperatorController(OperatorRepository repository, OperatorModelAssembler assembler) {
+    this.repository = repository; 
+    this.assembler = assembler;
   }
 
   // Aggregate root
 
   @GetMapping("/operators")
-  List<Operator> all() {
-    return repository.findAll();
+  CollectionModel<EntityModel<Operator>> all() {
+
+    List<EntityModel<Operator>> operators = repository.findAll().stream()
+      .map(assembler::toModel)
+      .collect(Collectors.toList());
+
+    return new CollectionModel<>(operators,
+      linkTo(methodOn(OperatorController.class).all()).withSelfRel());
   }
 
   @PostMapping("/operators")
@@ -42,15 +52,13 @@ public class OperatorController {
 
   // Single item
 
-  @GetMapping("/employees/{id}")
+  @GetMapping("/operators/{id}")
   EntityModel<Operator> one(@PathVariable Long id) {
 
     Operator operator = repository.findById(id)
       .orElseThrow(() -> new OperatorNotFoundException(id));
 
-    return new EntityModel<>(operator,
-      linkTo(methodOn(OperatorController.class).one(id)).withSelfRel(),
-      linkTo(methodOn(OperatorController.class).all()).withRel("operators"));
+    return assembler.toModel(operator);
   }
 
   @PutMapping("/operators/{id}")
