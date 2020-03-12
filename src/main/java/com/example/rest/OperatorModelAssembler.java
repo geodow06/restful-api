@@ -12,10 +12,10 @@ import com.example.persistence.domain.Operator;
 public class OperatorModelAssembler implements RepresentationModelAssembler<Operator, EntityModel<Operator>> {
 
   @Override
-  public EntityModel<Operator> toModel(Operator employee) {
+  public EntityModel<Operator> toModel(Operator operator) {
 
-    return new EntityModel<>(employee,
-      linkTo(methodOn(OperatorController.class).one(employee.getId())).withSelfRel(),
-      linkTo(methodOn(OperatorController.class).all()).withRel("employees"));
+    return new EntityModel<>(operator,
+      linkTo(methodOn(OperatorController.class).one(operator.getId())).withSelfRel(),
+      linkTo(methodOn(OperatorController.class).all()).withRel("operators"));
   }
 }

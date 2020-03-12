@@ -12,7 +12,7 @@ public class OperatorNotFoundAdvice {
   @ResponseBody
   @ExceptionHandler(OperatorNotFoundException.class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
-  String employeeNotFoundHandler(OperatorNotFoundException ex) {
+  String operatorNotFoundHandler(OperatorNotFoundException ex) {
     return ex.getMessage();
   }
 }

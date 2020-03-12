@@ -1,14 +1,15 @@
 package com.example.rest;
 
 
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
-
-
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,8 +47,13 @@ public class OperatorController {
   }
 
   @PostMapping("/operators")
-  Operator newOperator(@RequestBody Operator newOperator) {
-    return repository.save(newOperator);
+  ResponseEntity<?> newOperator(@RequestBody Operator newOperator) throws URISyntaxException {
+
+    EntityModel<Operator> entityModel = assembler.toModel(repository.save(newOperator));
+
+    return ResponseEntity
+      .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+      .body(entityModel);
   }
 
   // Single item
@@ -62,9 +68,9 @@ public class OperatorController {
   }
 
   @PutMapping("/operators/{id}")
-  Operator replaceOperator(@RequestBody Operator newOperator, @PathVariable Long id) {
+  ResponseEntity<?> replaceOperator(@RequestBody Operator newOperator, @PathVariable Long id) throws URISyntaxException {
 
-    return repository.findById(id)
+    Operator updatedOperator = repository.findById(id)
       .map(operator -> {
         operator.setName(newOperator.getName());
         operator.setCtu(newOperator.getCtu());
@@ -74,10 +80,19 @@ public class OperatorController {
         newOperator.setId(id);
         return repository.save(newOperator);
       });
+
+    EntityModel<Operator> entityModel = assembler.toModel(updatedOperator);
+
+    return ResponseEntity
+      .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+      .body(entityModel);
   }
 
   @DeleteMapping("/operators/{id}")
-  void deleteOperator(@PathVariable Long id) {
+  ResponseEntity<?> deleteOperator(@PathVariable Long id) {
+
     repository.deleteById(id);
+
+    return ResponseEntity.noContent().build();
   }
 }
